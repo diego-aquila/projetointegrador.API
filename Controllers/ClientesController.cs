@@ -1,4 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using projetointegrador.API.Data;
+using projetointegrador.API.Model;
+using projetointegrador.API.Model.DTO;
 using System.ComponentModel.DataAnnotations;
 
 namespace projetointegrador.API.Controllers
@@ -13,21 +17,22 @@ namespace projetointegrador.API.Controllers
 
 	public class ClientesController : ControllerBase
 	{
+		private readonly AppDbContext _clienteDbContext;
+
+
+		public ClientesController(AppDbContext context) {
+
+			_clienteDbContext = context;
+
+		}
+
 		//Annotation que referencia o método Get
 		[HttpGet("GetAll")]
-		public IActionResult GetAllClientes()
+		public async Task<IActionResult> GetAllClientes()
 		{
-			//Utilizando, por enquanto, dados mockados
-			var clientes = new[] {
+		   List<Cliente> listaClientes = await _clienteDbContext.Cliente.ToListAsync();
 
-			 new { Id = 1, Nome = "Diego Áquila Almeida Sampaio", Email = "diego@diegoaquila.com.br" },
-			 new { Id = 2, Nome = "Miguel de Souza Palmeirense", Email = "miguel@palmeiras.com.br" },
-			 new { Id = 3, Nome = "Raí Joga Muito no São Paulo", Email = "rai@spfc.com.br" },
-
-			};
-
-			//Retorna HTTTP 200 - Sucesso - Retorna dados no body(corpo da resposta) como JSON
-			return Ok(clientes);
+		   return Ok(listaClientes);
 		}
 
 		[HttpGet("GetById/{id}")]
@@ -63,8 +68,38 @@ namespace projetointegrador.API.Controllers
 			//Retorna o cliente encontrado no formato JSON 
 			return Ok(cliente);
 
+		}
 
+		[HttpPost("CriarCliente")]
+		public async Task<IActionResult> CriarCliente([FromBody] CriarClienteDTO dadosCliente) {
 
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+
+			}
+
+			Cliente? clienteEncontrado = await _clienteDbContext.Cliente.FirstOrDefaultAsync(cliente => cliente.CPF == dadosCliente.CPF);
+
+			if (clienteEncontrado != null) { 
+				return BadRequest($"Já existe um cliente cadastrado com o CPF {dadosCliente.CPF}");
+			}
+
+			Cliente cliente = new Cliente
+			{
+				Nome = dadosCliente.Nome,
+				Email = dadosCliente.Email,
+				CPF = dadosCliente.CPF,
+				
+			};
+
+			_clienteDbContext.Cliente.Add(cliente);
+			int resultadoGravacao = await _clienteDbContext.SaveChangesAsync();
+
+			if (resultadoGravacao > 0)
+				return Created();
+
+			return BadRequest("Erro ao criar cliente");
 
 
 		}
