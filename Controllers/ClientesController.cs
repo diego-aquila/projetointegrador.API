@@ -30,7 +30,9 @@ namespace projetointegrador.API.Controllers
 		[HttpGet("GetAll")]
 		public async Task<IActionResult> GetAllClientes()
 		{
-		   List<Cliente> listaClientes = await _clienteDbContext.Cliente.ToListAsync();
+		   List<Cliente> listaClientes = await _clienteDbContext.Cliente.
+				Include(cliente => cliente.Enderecos).
+				ToListAsync();
 
 		   return Ok(listaClientes);
 		}

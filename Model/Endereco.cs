@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using projetointegrador.API.Enum;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
@@ -8,6 +9,9 @@ namespace projetointegrador.API.Model
 	{
 		[Key]
 		public int Id { get; set; }
+
+		[Required]
+		public TipoEndereco TipoEndereco { get; set; }
 
 		[Required(ErrorMessage = "Logradouro é um valor obrigatório")]
 		public string Logradouro { get; set; } = string.Empty;
